@@ -1,0 +1,4 @@
+G:\Projectos Visual\DSRemapper\build\SDK\Core\DSRemapper.Core.dll
+G:\Projectos Visual\DSRemapper\build\SDK\Core\DSRemapper.Core.deps.json
+G:\Projectos Visual\DSRemapper\build\SDK\Core\DSRemapper.Core.pdb
+G:\Projectos Visual\DSRemapper\build\SDK\Core\DSRemapper.Core.xml
