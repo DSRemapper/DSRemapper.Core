@@ -1,4 +1,4 @@
-﻿using DSRemapper.DSMath;
+﻿using DSRemapper.DSRMath;
 using System.Numerics;
 
 namespace DSRemapper.SixAxis
@@ -8,7 +8,7 @@ namespace DSRemapper.SixAxis
     /// </summary>
     public class SimpleSignalFilter
     {
-        private DSVector3 sample1, y;
+        private DSRVector3 sample1, y;
         /// <summary>
         /// SimpleSignalFilter class contructor
         /// </summary>
@@ -27,7 +27,7 @@ namespace DSRemapper.SixAxis
         /// <param name="sample">The new sample value to filter</param>
         /// <param name="x0Strength">The percentage strength for the new sample (range: 0-1)</param>
         /// <returns>An interpolation of the sample without high frequency noise</returns>
-        public DSVector3 LowPass(DSVector3 sample, float x0Strength)
+        public DSRVector3 LowPass(DSRVector3 sample, float x0Strength)
         {
             x0Strength = Math.Clamp(x0Strength, 0, 1);
             y = (1 - x0Strength) * y + x0Strength * sample;
@@ -42,7 +42,7 @@ namespace DSRemapper.SixAxis
         /// <param name="x0Strength">The percentage strength for the new sample (range: 0-1)</param>
         /// <param name="x1Strength">The percentage strength for the previus sample (range: 0-1)</param>
         /// <returns>An interpolation of the sample without high frequency noise</returns>
-        public DSVector3 LowPass(DSVector3 sample, float x0Strength, float x1Strength)
+        public DSRVector3 LowPass(DSRVector3 sample, float x0Strength, float x1Strength)
         {
             x0Strength = Math.Clamp(x0Strength, 0, 1);
             x1Strength = Math.Clamp(x1Strength, 0, 1);
@@ -91,7 +91,7 @@ namespace DSRemapper.SixAxis
         /// <summary>
         /// Average value stored by this object
         /// </summary>
-        public DSVector3 Average { get; private set; } = new();
+        public DSRVector3 Average { get; private set; } = new();
 
         /// <summary>
         /// ExpMovingAverageVector3 class constructor
@@ -103,7 +103,7 @@ namespace DSRemapper.SixAxis
         /// <param name="newValue">New sample value for the average</param>
         /// <param name="maxN">Max number of values that are taken into account for the average</param>
         /// <returns>The new average value</returns>
-        public DSVector3 Update(DSVector3 newValue, int maxN = 0)
+        public DSRVector3 Update(DSRVector3 newValue, int maxN = 0)
         {
             if (n == 0 || n < maxN)
                 n++;
@@ -127,19 +127,19 @@ namespace DSRemapper.SixAxis
         /// <summary>
         /// Delta/diference rotation from the last update
         /// </summary>
-        public DSQuaternion deltaRotation = Quaternion.Identity;
+        public DSRQuaternion deltaRotation = Quaternion.Identity;
         /// <summary>
         /// Total rotation of the IMU
         /// </summary>
-        public DSQuaternion rotation = Quaternion.Identity;
+        public DSRQuaternion rotation = Quaternion.Identity;
         /// <summary>
         /// Gravity vector pointing to planet center of gravity
         /// </summary>
-        public DSVector3 Grav = new(0, -1, 0);
+        public DSRVector3 Grav = new(0, -1, 0);
         /// <summary>
         /// Acceleration vector of the IMU relative to it's starting position
         /// </summary>
-        public DSVector3 Accel = new();
+        public DSRVector3 Accel = new();
 
         /// <summary>
         /// SixAxisProcess class constructor
@@ -150,7 +150,7 @@ namespace DSRemapper.SixAxis
         /// </summary>
         /// <param name="accel">3D vector representing device acceleration</param>
         /// <param name="gyro">3D vector representing device angular velocity</param>
-        public void Update(DSVector3 accel, DSVector3 gyro)
+        public void Update(DSRVector3 accel, DSRVector3 gyro)
         {
             now = DateTime.Now;
             DeltaTime = (now - lastUpdate).Ticks / (float)TimeSpan.TicksPerSecond;
@@ -158,12 +158,12 @@ namespace DSRemapper.SixAxis
 
             float angleSpeed = gyro.Length * MathF.PI / 180f;
             float angle = angleSpeed * DeltaTime;
-            DSVector3 unitAccel = accel.Length > 0 ? accel.Normalize() : new();
+            DSRVector3 unitAccel = accel.Length > 0 ? accel.Normalize() : new();
 
             if (angle != 0)
                 deltaRotation = Quaternion.Normalize(Quaternion.CreateFromAxisAngle(Vector3.Normalize(gyro), angle));
 
-            Grav = (DSQuaternion)Quaternion.Inverse(deltaRotation) * Grav;
+            Grav = (DSRQuaternion)Quaternion.Inverse(deltaRotation) * Grav;
 
             Grav = Vector3.Normalize((1 - accelCorrection) * Grav + accelCorrection * -unitAccel);
 

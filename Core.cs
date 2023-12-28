@@ -1,86 +1,61 @@
 ﻿using DSRemapper.Types;
+using FireLibs.Logging;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace DSRemapper.Core
 {
-    /// <summary>
-    /// Enumeration of the Remappers message types
-    /// </summary>
-    public enum RemapperEventType
-    {
-        /// <summary>
-        /// Shows the message to the device console of the program
-        /// </summary>
-        DeviceConsole,
-        /// <summary>
-        /// Shows the message as a warning message on the debug console of the program
-        /// </summary>
-        Warning,
-        /// <summary>
-        /// Shows the message as a error message on the debug console of the program
-        /// </summary>
-        Error
-    }
-    
+
     /// <summary>
     /// Delegate for Remappers message events
     /// </summary>
-    /// <param name="type">The type of the current message</param>
+    /// <param name="sender">The object that sends the message to the device console</param>
+    /// <param name="level">The level of the current message</param>
+    /// <param name="deviceConsole">If is true, the message will be displayed on the device console</param>
     /// <param name="message">A string containing the message sent by the Remapper object</param>
-    public delegate void RemapperEventArgs(RemapperEventType type, string message);
-    
+    public delegate void RemapperEventArgs(object sender, LogLevel level,bool deviceConsole, string message);
+    /// <summary>
+    /// Delegate for Remappers device console message events.
+    /// </summary>
+    /// <param name="sender">The object that sends the message to the device console</param>
+    /// <param name="message">A string containing the message sent to the device console</param>
+    public delegate void ControllerConsoleEventArgs(object sender, string message);
+
     /// <summary>
     /// Attribute to bind Remappers to their corresponding file extensions
     /// </summary>
+    /// <param name="fileExts">The file extensions (without the dot) binded to the Remapper class</param>
     [AttributeUsage(AttributeTargets.Class)]
-    public class RemapperAttribute : Attribute
+    public class RemapperAttribute(string[] fileExts) : Attribute
     {
         /// <summary>
-        /// The extension of the file referenced by this attribute
+        /// The extensions of the file referenced by this attribute
         /// </summary>
-        public string FileExt { get; set; }
-        /// <summary>
-        /// RemapperAttribute class contructor
-        /// </summary>
-        /// <param name="fileExt">The file extension (without the dot) binded to the Remapper class</param>
-        public RemapperAttribute(string fileExt)
-        {
-            FileExt = fileExt;
-        }
+        public string[] FileExts { get; } = fileExts;
     }
-    
+
     /// <summary>
     /// An attribute to reference a emulated controller with a unique id/path to instance it.
     /// </summary>
+    /// <param name="path">The id/path for the emulated controller</param>
+    /// <param name="isGlobal">If is true the emulated controller will not be referenced to a specific Remapper (default value: false) [still not implemented]</param>
     [AttributeUsage(AttributeTargets.Class)]
-    public class EmulatedControllerAttribute : Attribute
+    public class EmulatedControllerAttribute(string path, bool isGlobal = false) : Attribute
     {
         /// <summary>
         /// Gets/Sets the virtual device id/path
         /// </summary>
-        public string DevicePath { get; set; }
+        public string DevicePath { get; } = path;
         /// <summary>
         /// Gets/Sets if the controller is global or not
         /// </summary>
-        public bool IsGlobal { get; set; }
-        /// <summary>
-        /// EmulatedControllerAttribute class contructor
-        /// </summary>
-        /// <param name="path">The id/path for the emulated controller</param>
-        /// <param name="isGlobal">If is true the emulated controller will not be referenced to a specific Remapper (default value: false) [still not implemented]</param>
-        public EmulatedControllerAttribute(string path, bool isGlobal = false)
-        {
-            DevicePath = path;
-            IsGlobal = isGlobal;
-        }
+        public bool IsGlobal { get; } = isGlobal;
     }
-    
     #region Plugins Interfaces
     /// <summary>
     /// A standard interface for device informations handled by DSRemapper
     /// </summary>
-    public interface IDSInputDeviceInfo
+    public interface IDSRInputDeviceInfo
     {
         /// <summary>
         /// Unique id for the device referenced by this interface.
@@ -91,11 +66,11 @@ namespace DSRemapper.Core
         /// </summary>
         public string Name { get; }
         /// <summary>
-        /// Creates a IDSInputController that references the physical controller referenced by this interface.
+        /// Creates a IDSRInputController that references the physical controller referenced by this interface.
         /// Works as a shortcut to the corresponding controller constructor to simplify the program code.
         /// </summary>
-        /// <returns>A initialized IDSInputController object</returns>
-        public IDSInputController CreateController();
+        /// <returns>A initialized IDSRInputController object</returns>
+        public IDSRInputController CreateController();
         /// <summary>
         /// Returns de device name and id as a string with a default format.
         /// </summary>
@@ -106,24 +81,20 @@ namespace DSRemapper.Core
     /// <summary>
     /// A standard Device Scanner interface for DSRemapper
     /// </summary>
-    public interface IDSDeviceScanner
+    public interface IDSRDeviceScanner
     {
         /// <summary>
         /// Returns an array with the information of connected devices for a specific plugin or controller type.
         /// </summary>
-        /// <returns>An array of IDSInputDeviceInfo objects</returns>
-        public IDSInputDeviceInfo[] ScanDevices();
+        /// <returns>An array of IDSRInputDeviceInfo objects</returns>
+        public IDSRInputDeviceInfo[] ScanDevices();
     }
     
     /// <summary>
     /// Standard input controller of DSRemapper
     /// </summary>
-    public interface IDSInputController : IDisposable
+    public interface IDSRInputController : IDisposable
     {
-        /*/// <summary>
-        /// Gets the path to the image that represent the physical controller
-        /// </summary>
-        static virtual public string ImgPath { get=>"Unknown.png"; }*/
         /// <summary>
         /// Gets the controller Id
         /// </summary>
@@ -136,6 +107,10 @@ namespace DSRemapper.Core
         /// Gets the controller type
         /// </summary>
         public string Type { get; }
+        /// <summary>
+        /// Gets the relative path (from the plugin dll) to the image that represent the physical controller
+        /// </summary>
+        virtual public string ImgPath { get => "UnknownController.png"; }
         /// <summary>
         /// Gets if the controller is currently connected
         /// </summary>
@@ -152,18 +127,18 @@ namespace DSRemapper.Core
         /// Gets the input state of the controller, which includes axes positions, buttons, etc.
         /// </summary>
         /// <returns>A standard DSRemapper input report</returns>
-        public DSInputReport GetInputReport();
+        public IDSRInputReport GetInputReport();
         /// <summary>
         /// Sets the output state of a controller sending information about vibration, force feedback, etc.
         /// </summary>
         /// <param name="report">A standard DSRemapper output report with the information for the controller</param>
-        public void SendOutputReport(DSOutputReport report);
+        public void SendOutputReport(DefaultDSROutputReport report);
     }
     
     /// <summary>
     /// Standard interface for DSRemapper emulated controllers
     /// </summary>
-    public interface IDSOutputController : IDisposable
+    public interface IDSROutputController : IDisposable
     {
         /// <summary>
         /// Gets if the emulated controller is connected and updating it's data
@@ -172,7 +147,7 @@ namespace DSRemapper.Core
         /// <summary>
         /// Gets the state structure of the emulated controller
         /// </summary>
-        public DSInputReport State { get; }
+        public IDSRInputReport State { get; }
         /// <summary>
         /// Default Connect function to connect the emulated controller
         /// </summary>
@@ -189,7 +164,7 @@ namespace DSRemapper.Core
         /// Gets the current state of the feedback sended to the emulated controller from the computer
         /// </summary>
         /// <returns>A standard DSRemapper output report</returns>
-        public DSOutputReport GetFeedbackReport();
+        public DefaultDSROutputReport GetFeedbackReport();
         /// <summary>
         /// Implementation for custom user defined functions.
         /// Created to implement needed functions not suported by the interface.
@@ -224,7 +199,7 @@ namespace DSRemapper.Core
         /// </summary>
         /// <param name="report">Standard DSRemapper input report with the state of physical controller</param>
         /// <returns>Standard DSRemapper output report with the feedback state for the physical controller</returns>
-        public DSOutputReport Remap(DSInputReport report);
+        public DefaultDSROutputReport Remap(IDSRInputReport report);
     }
     #endregion Plugins Interfaces
 }

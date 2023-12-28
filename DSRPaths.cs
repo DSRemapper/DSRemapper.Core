@@ -5,7 +5,7 @@ namespace DSRemapper.Core
     /// <summary>
     /// A class containing all the important folder paths for DSRemapper
     /// </summary>
-    public static class DSPaths
+    public static class DSRPaths
     {
         private readonly static string ExePath = Assembly.GetExecutingAssembly().Location;
         /// <summary>
@@ -44,7 +44,7 @@ namespace DSRemapper.Core
         /// <summary>
         /// Static constructor that creates all folders if they doesn't exist, to prevent errors.
         /// </summary>
-        static DSPaths()
+        static DSRPaths()
         {
             string[] paths = {
                 PluginsPath,

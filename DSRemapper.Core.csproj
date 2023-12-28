@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -15,29 +15,35 @@
 	  <PackageReadmeFile>Readme.md</PackageReadmeFile>
 	  <PackageProjectUrl>https://github.com/Oscar-Wohlfarhrt/DSRemapper</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/Oscar-Wohlfarhrt/DSRemapper</RepositoryUrl>
+	  <AssemblyVersion>0.2.2</AssemblyVersion>
 	  <PackageReleaseNotes>First release of the package</PackageReleaseNotes>
-	  <AssemblyVersion>0.1.0</AssemblyVersion>
-	  <FileVersion>$(AssemblyVersion)-pre-alpha</FileVersion>
-	  <Version>$(FileVersion)</Version>
+	  <FileVersion>$(AssemblyVersion)</FileVersion>
+	  <Version>$(AssemblyVersion)-beta</Version>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
+	  <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>portable</DebugType>
+    <Deterministic>False</Deterministic>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>portable</DebugType>
+    <Deterministic>False</Deterministic>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FireLibs.IO" Version="0.2.1-alpha" />
+    <PackageReference Include="FireLibs.Logging" Version="0.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Readme.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+    </None>
+    <None Update="UnknownController.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
