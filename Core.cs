@@ -2,6 +2,7 @@
 using FireLibs.Logging;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace DSRemapper.Core
 {
@@ -133,6 +134,16 @@ namespace DSRemapper.Core
         /// </summary>
         /// <param name="report">A standard DSRemapper output report with the information for the controller</param>
         public void SendOutputReport(DefaultDSROutputReport report);
+        /// <summary>
+        /// Custom function to be defined by a plugin
+        /// </summary>
+        virtual public void FunctionA() { }
+        /// <inheritdoc cref="FunctionA"/>
+        virtual public void FunctionB() { }
+        /// <inheritdoc cref="FunctionA"/>
+        virtual public void FunctionC() { }
+        /// <inheritdoc cref="FunctionA"/>
+        virtual public void FunctionD() { }
     }
     
     /// <summary>

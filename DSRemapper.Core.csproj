@@ -15,21 +15,29 @@
 	  <PackageReadmeFile>Readme.md</PackageReadmeFile>
 	  <PackageProjectUrl>https://github.com/Oscar-Wohlfarhrt/DSRemapper</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/Oscar-Wohlfarhrt/DSRemapper</RepositoryUrl>
-	  <AssemblyVersion>0.2.2</AssemblyVersion>
-	  <PackageReleaseNotes>First release of the package</PackageReleaseNotes>
+	  <AssemblyVersion>0.2.3</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
 	  <Version>$(AssemblyVersion)-beta</Version>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
 	  <Configurations>Debug;Release</Configurations>
+	  <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>portable</DebugType>
-    <Deterministic>False</Deterministic>
+    <Deterministic>True</Deterministic>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>portable</DebugType>
+    <Deterministic>True</Deterministic>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Deterministic>False</Deterministic>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Deterministic>False</Deterministic>
   </PropertyGroup>
 
@@ -46,5 +54,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="Pack">
+		<Exec Command="copy $(OutputPath)$(TargetName).$(Version).nupkg ..\nugets\* /Y" />
+	</Target>
 
 </Project>

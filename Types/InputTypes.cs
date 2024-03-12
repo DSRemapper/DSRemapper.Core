@@ -346,7 +346,7 @@ namespace DSRemapper.Types
         /// <inheritdoc/>
         public float Battery { get; set; } = 0;
         /// <inheritdoc/>
-        public float Charging { get; set; } = 0;
+        public bool Charging { get; set; } = false;
         /// <inheritdoc/>
         public float DeltaTime { get; set; } = 0;
         /// <inheritdoc/>
