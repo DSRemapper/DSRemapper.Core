@@ -109,6 +109,11 @@ namespace DSRemapper.Core
         /// </summary>
         public string Type { get; }
         /// <summary>
+        /// Gets the controller info string to show relevant information of it (for example, battery level of Dualshock 4).
+        /// Try to keep it on ONE or TWO lines, otherwise information container can expand more than expected.
+        /// </summary>
+        virtual public string Info { get=>""; }
+        /// <summary>
         /// Gets the relative path (from the plugin dll) to the image that represent the physical controller
         /// </summary>
         virtual public string ImgPath { get => "UnknownController.png"; }
@@ -134,16 +139,6 @@ namespace DSRemapper.Core
         /// </summary>
         /// <param name="report">A standard DSRemapper output report with the information for the controller</param>
         public void SendOutputReport(DefaultDSROutputReport report);
-        /// <summary>
-        /// Custom function to be defined by a plugin
-        /// </summary>
-        virtual public void FunctionA() { }
-        /// <inheritdoc cref="FunctionA"/>
-        virtual public void FunctionB() { }
-        /// <inheritdoc cref="FunctionA"/>
-        virtual public void FunctionC() { }
-        /// <inheritdoc cref="FunctionA"/>
-        virtual public void FunctionD() { }
     }
     
     /// <summary>
