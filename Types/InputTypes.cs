@@ -338,8 +338,8 @@ namespace DSRemapper.Types
         #endregion SixAxes
     }
     /// <summary>
-    /// A default implementation of the IDSRInputReport.
-    /// Is recomended to implement a class using the IDSRInputReport interface.
+    /// A default implementation of the IDSRInputReport interface.
+    /// Is recomended to implement a class using the IDSRInputReport interface for your own plugin.
     /// </summary>
     public class DefaultDSRInputReport : IDSRInputReport
     {

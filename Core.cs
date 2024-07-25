@@ -52,6 +52,26 @@ namespace DSRemapper.Core
         /// </summary>
         public bool IsGlobal { get; } = isGlobal;
     }
+
+    /// <summary>
+    /// Mark a method as a Custom Method (not included on the <see cref="IDSRInputController"/> interface) to be accessed from DSRemapper.Framework
+    /// </summary>
+    /// <param name="internalName">Friendly name for the method</param>
+    /// <param name="scriptOnly">Mark the function to be accessed only from code. In the case of true, for example, the function will not be showed in user graphical interfaces like DSRemapperApp, but it can be accessed from a remapper plugin.</param>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class CustomMethodAttribute(string internalName, bool scriptOnly = false) : Attribute
+    {
+        /// <summary>
+        /// Gets/Sets the method friendly name
+        /// </summary>
+        public string InternalName { get; } = internalName;
+        /// <summary>
+        /// Gets/Sets if the function will be visible on GUIs
+        /// </summary>
+        public bool ScriptOnly { get; } = scriptOnly;
+    }
+
+
     #region Plugins Interfaces
     /// <summary>
     /// A standard interface for device informations handled by DSRemapper

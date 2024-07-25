@@ -93,7 +93,7 @@ namespace DSRemapper.Types
         /// </summary>
         public void CalculateButtons()
         {
-            int dPad = (int)(Angle / 45);
+            int dPad = (int)Math.Round(Angle / 45) % 8;
             if (Angle >= 0)
                 buts = (bool[])buttonArragement[dPad + 1].Clone();
             else
