@@ -25,9 +25,14 @@ namespace DSRemapper.Core.Types
         /// <summary>
         /// BitVector constructor
         /// </summary>
-        public BitVector()
+        public BitVector():this(default!){}
+        /// <summary>
+        /// BitVector constructor
+        /// </summary>
+        /// <param name="data">The initial value of the field</param>
+        public BitVector(T data)
         {
-            data = default!;
+            this.data = data;
         }
         /// <summary>
         /// Applies the given mask to the BitVector and:

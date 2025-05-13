@@ -53,7 +53,7 @@ namespace DSRemapper.Types
         /// <param name="pov">A byte value within 0-8 range</param>
         public void SetDSPov(byte pov)
         {
-            Angle = pov != 8 ? pov * 360f / 8f : -1;
+            Angle = pov != 8 ? pov * 45f : -1;
             CalculateButtons();
         }
         /// <summary>

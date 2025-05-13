@@ -137,9 +137,18 @@ namespace DSRemapper.SixAxis
         /// </summary>
         public DSRVector3 Grav = new(0, -1, 0);
         /// <summary>
-        /// Acceleration vector of the IMU relative to it's starting position
+        /// Acceleration vector without gravity component
         /// </summary>
+        //of the IMU relative to it's starting position
         public DSRVector3 Accel = new();
+        /// <summary>
+        /// Acceleration vector with gravity component and without input error
+        /// </summary>
+        public DSRVector3 RawAccel = new();
+        /// <summary>
+        /// Gyroscope vector without input error
+        /// </summary>
+        public DSRVector3 RawGyro = new();
 
         /// <summary>
         /// SixAxisProcess class constructor
@@ -165,11 +174,54 @@ namespace DSRemapper.SixAxis
 
             Grav = (DSRQuaternion)Quaternion.Inverse(deltaRotation) * Grav;
 
-            Grav = Vector3.Normalize((1 - accelCorrection) * Grav + accelCorrection * -unitAccel);
+            Grav = Vector3.Normalize((1 - accelCorrection) * Grav + accelCorrection * unitAccel);
 
             rotation *= deltaRotation;
+            //Console.WriteLine(accel);
+            //Console.WriteLine(accel + Grav);
+            Accel = (accel - Grav);//rotation * 
+        }
 
-            Accel = rotation * (accel + Grav);
+        DSRVector3 lastGyroRead = new();
+        DSRVector3 lastAccelRead = new();
+        ExpMovingAverageVector3 accelError = new();
+        ExpMovingAverageVector3 gyroError = new();
+
+        /// <summary>
+        /// IMU processing function. Update the IMU values and corrects the input errors.
+        /// </summary>
+        /// <param name="accel">Accelerometer raw input value</param>
+        /// <param name="gyro">Gyroscope raw input value</param>
+        /// <param name="maxCount">Indicates how much reads will be considerated for the error</param>
+        // <param name="autoThesshold">If true the class will auto recalculate the thresshold to an optimal one</param>
+        public void ProcessRawIMU(DSRVector3 accel, DSRVector3 gyro, int maxCount = 200, float gyroMag=1f, float accelMag = 0.1f)//, bool autoThesshold = false
+        {
+            DSRVector3 temp = gyro - lastGyroRead;
+            if (temp.Length < gyroMag)
+                gyroError.Update(gyro, 200);
+
+            lastGyroRead = new(gyro.X, gyro.Y, gyro.Z);
+
+            DSRVector3 fixedAccel = accel - accelError.Average;
+            DSRVector3 fixedGyro = gyro - gyroError.Average;
+
+            RawAccel = fixedAccel;
+            RawGyro = fixedGyro;
+
+            Update(fixedAccel, fixedGyro);
+
+            //DSRVector3 AccelError = Accel + accelError.Average;
+            temp = Accel - lastAccelRead;
+
+
+            if (temp.Length < accelMag)
+            {
+                //Console.WriteLine($"{temp.Length} | {Accel}");
+                accelError.Update(Accel, 200);
+            }
+            
+
+            lastAccelRead = new(Accel.X, Accel.Y, Accel.Z);
         }
     }
 }

@@ -158,7 +158,7 @@ namespace DSRemapper.Core
         /// Sets the output state of a controller sending information about vibration, force feedback, etc.
         /// </summary>
         /// <param name="report">A standard DSRemapper output report with the information for the controller</param>
-        public void SendOutputReport(DefaultDSROutputReport report);
+        public void SendOutputReport(IDSROutputReport report);
     }
     
     /// <summary>
@@ -173,7 +173,7 @@ namespace DSRemapper.Core
         /// <summary>
         /// Gets the state structure of the emulated controller
         /// </summary>
-        public IDSRInputReport State { get; }
+        public IDSRInputReport State { get; set; }
         /// <summary>
         /// Default Connect function to connect the emulated controller
         /// </summary>
@@ -190,7 +190,7 @@ namespace DSRemapper.Core
         /// Gets the current state of the feedback sended to the emulated controller from the computer
         /// </summary>
         /// <returns>A standard DSRemapper output report</returns>
-        public DefaultDSROutputReport GetFeedbackReport();
+        public IDSROutputReport GetFeedbackReport();
         /// <summary>
         /// Implementation for custom user defined functions.
         /// Created to implement needed functions not suported by the interface.
@@ -225,7 +225,7 @@ namespace DSRemapper.Core
         /// </summary>
         /// <param name="report">Standard DSRemapper input report with the state of physical controller</param>
         /// <returns>Standard DSRemapper output report with the feedback state for the physical controller</returns>
-        public DefaultDSROutputReport Remap(IDSRInputReport report);
+        public IDSROutputReport Remap(IDSRInputReport report);
     }
     #endregion Plugins Interfaces
 }
