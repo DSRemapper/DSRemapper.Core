@@ -15,7 +15,7 @@
 	  <PackageReadmeFile>Readme.md</PackageReadmeFile>
 	  <PackageProjectUrl>https://github.com/Oscar-Wohlfarhrt/DSRemapper</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/Oscar-Wohlfarhrt/DSRemapper</RepositoryUrl>
-	  <AssemblyVersion>0.3.0</AssemblyVersion>
+	  <AssemblyVersion>0.3.1</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
 	  <Version>$(AssemblyVersion)-beta</Version>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <PackageReference Include="FireLibs.Logging" Version="0.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
   </ItemGroup>
 
   <ItemGroup>
