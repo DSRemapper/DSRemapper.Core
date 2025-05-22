@@ -42,7 +42,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FireLibs.Logging" Version="0.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
   </ItemGroup>
 

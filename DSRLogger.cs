@@ -55,6 +55,13 @@ namespace DSRemapper
         /// <param name="subLoggerId">The DSRLogger name associated with the instance</param>
         /// <returns>A instance of DSRLogger</returns>
         public static DSRLogger GetLogger(string subLoggerId) => new(subLoggerId);
+        /// <summary>
+        /// Initialize a DSRLogger with a name to identify log entries on the log file.
+        /// Alternative you can use static log functions, which not have any name added.
+        /// </summary>
+        /// <typeparam name="T">The type which name will be used for the logger</typeparam>
+        /// <returns>A instance of DSRLogger</returns>
+        public static DSRLogger GetLogger<T>() => new(typeof(T).FullName ?? "");
 
 
         private readonly ILogger _logger;

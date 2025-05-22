@@ -1,8 +1,8 @@
 ﻿using DSRemapper.Types;
-using FireLibs.Logging;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 
 namespace DSRemapper.Core
 {
