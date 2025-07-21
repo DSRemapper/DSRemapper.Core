@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace DSRemapper.Core.Loggers
@@ -52,20 +53,21 @@ namespace DSRemapper.Core.Loggers
             minLevel = minimumLevel;
 
             this.config = config;
-            rgFilter = new(@$"{config.FileIdentifier}(\d{{8}}-\d{{6}})");
-            fileName = GetNewFileName();
-            string repeated = "";
-            int i = 0;
+            Debug.WriteLine($"Seting up file logger {config.FileIdentifier}");
             if (!Directory.Exists(config.LogFolder))
                 Directory.CreateDirectory(config.LogFolder);
-            while (File.Exists(fileName + repeated))
+            rgFilter = new(@$"{config.FileIdentifier}(\d{{8}}-\d{{6}})");
+            fileName = GetNewFileName(config);
+            string repeated = "";
+            int i = 0;
+            while (File.Exists(fileName + repeated + ".txt"))
                 repeated = $" ({++i})";
 
             fileName += repeated + ".txt";
             File.Create(fileName).Close();
             DeleteOldFiles();
         }
-        private string GetNewFileName() => Path.Combine(config.LogFolder,
+        private static string GetNewFileName(FileLoggerConfiguration config) => Path.Combine(config.LogFolder,
             $"{config.FileIdentifier}{DateTime.Now:yyyyMMdd-HHmmss}");
 
         private void DeleteOldFiles()
@@ -107,13 +109,18 @@ namespace DSRemapper.Core.Loggers
         /// The maximum number of files (corresponding to <see cref="FileIdentifier"/> parameter) that will be retained.
         /// </summary>
         public int MaxFiles { get; private set; }
+
+        /// <summary>
+        /// Creates an instance of <see cref="FileLoggerConfiguration"/>
+        /// </summary>
+        public FileLoggerConfiguration():this("log-", "Logs", 5) { }
         /// <summary>
         /// Creates an instance of <see cref="FileLoggerConfiguration"/>
         /// </summary>
         /// <param name="fileName"><inheritdoc cref="FileIdentifier" path="/summary"/></param>
         /// <param name="folderName"><inheritdoc cref="LogFolder" path="/summary"/></param>
         /// <param name="maxFiles"><inheritdoc cref="MaxFiles" path="/summary"/></param>
-        public FileLoggerConfiguration(string fileName = "log-", string folderName = "Logs", int maxFiles = 5)
+        public FileLoggerConfiguration(string fileName, string folderName, int maxFiles)
         {
             FileIdentifier = fileName;
             LogFolder = folderName;
