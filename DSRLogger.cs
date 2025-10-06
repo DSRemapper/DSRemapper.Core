@@ -63,25 +63,28 @@ namespace DSRemapper
         /// <returns>A instance of DSRLogger</returns>
         public static DSRLogger GetLogger<T>() => new(typeof(T).FullName ?? "");
 
-
-        private readonly ILogger _logger;
+        /// <summary>
+        /// The <see cref="ILogger"/> intance used by the <see cref="DSRLogger"/> class.
+        /// </summary>
+        /// <returns><see cref="ILogger"/> instance</returns>
+        public ILogger Logger { get; private set; }
         private DSRLogger(string subLoggerId) : this(logFac.CreateLogger(subLoggerId)) { }
-        private DSRLogger(ILogger logger) => _logger = logger;
+        private DSRLogger(ILogger logger) => Logger = logger;
 
         /// <inheritdoc cref="LoggerExtensions.Log(ILogger, LogLevel, string?, object?[])"/>
-        public void Log(LogLevel level, string message, params object?[] args) => _logger.Log(level,message,args);
+        public void Log(LogLevel level, string message, params object?[] args) => Logger.Log(level,message,args);
         /// <inheritdoc cref="LoggerExtensions.LogTrace(ILogger, string?, object?[])"/>
-        public void LogTrace(string message, params object?[] args) => _logger.LogTrace(message, args);
+        public void LogTrace(string message, params object?[] args) => Logger.LogTrace(message, args);
         /// <inheritdoc cref="LoggerExtensions.LogDebug(ILogger, string?, object?[])"/>
-        public void LogDebug(string message, params object?[] args) => _logger.LogDebug(message,args);
+        public void LogDebug(string message, params object?[] args) => Logger.LogDebug(message,args);
         /// <inheritdoc cref="LoggerExtensions.LogInformation(ILogger, string?, object?[])"/>
-        public void LogInformation(string message, params object?[] args) => _logger.LogInformation(message, args);
+        public void LogInformation(string message, params object?[] args) => Logger.LogInformation(message, args);
         /// <inheritdoc cref="LoggerExtensions.LogWarning(ILogger, string?, object?[])"/>
-        public void LogWarning(string message, params object?[] args) => _logger.LogWarning(message, args);
+        public void LogWarning(string message, params object?[] args) => Logger.LogWarning(message, args);
         /// <inheritdoc cref="LoggerExtensions.LogError(ILogger, string?, object?[])"/>
-        public void LogError(string message, params object?[] args) => _logger.LogError(message, args);
+        public void LogError(string message, params object?[] args) => Logger.LogError(message, args);
         /// <inheritdoc cref="LoggerExtensions.LogCritical(ILogger, string?, object?[])"/>
-        public void LogCritical(string message, params object?[] args) => _logger.LogCritical(message, args);
+        public void LogCritical(string message, params object?[] args) => Logger.LogCritical(message, args);
 
     }
 
