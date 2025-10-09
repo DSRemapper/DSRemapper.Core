@@ -8,7 +8,10 @@ namespace DSRemapper.Core.Loggers
     /// <param name="category"><inheritdoc cref="ILoggerProvider.CreateLogger(string)" path="/param[@name='categoryName']"/></param>
     public class ConsoleLogger(string category) : ILogger
     {
-        private readonly object _lock = new();
+        // Make this a thread for safe threading instead of an static that blocks all threads.
+        // For now this should work considering that the Device Scanner
+        // runs once per second and doesn't log if there are no changes.
+        private static readonly object _lock = new();
         private string Category { get; set; } = category;
             
         /// <inheritdoc/>

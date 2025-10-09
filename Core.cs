@@ -11,16 +11,15 @@ namespace DSRemapper.Core
     /// Delegate for Remappers message events
     /// </summary>
     /// <param name="sender">The object that sends the message to the device console</param>
-    /// <param name="level">The level of the current message</param>
-    /// <param name="deviceConsole">If is true, the message will be displayed on the device console</param>
     /// <param name="message">A string containing the message sent by the Remapper object</param>
-    public delegate void RemapperEventArgs(object sender, LogLevel level,bool deviceConsole, string message);
-    /// <summary>
+    /// <param name="level">The level of the current message</param>
+    public delegate void DeviceConsoleEventArgs(object sender, string message, LogLevel level);
+    /*/// <summary>
     /// Delegate for Remappers device console message events.
     /// </summary>
     /// <param name="sender">The object that sends the message to the device console</param>
     /// <param name="message">A string containing the message sent to the device console</param>
-    public delegate void ControllerConsoleEventArgs(object sender, string message);
+    public delegate void ControllerConsoleEventArgs(object sender, string message);*/
 
     /// <summary>
     /// Attribute to bind Remappers to their corresponding file extensions
@@ -212,9 +211,9 @@ namespace DSRemapper.Core
     public interface IDSRemapper : IDisposable
     {
         /// <summary>
-        /// Occurs when the remapper raise a message.
+        /// Occurs when the remapper raise a message to the device console.
         /// </summary>
-        public event RemapperEventArgs? OnLog;
+        public event DeviceConsoleEventArgs? OnDeviceConsole;
         /// <summary>
         /// Sets the script for the remapper setting it up to start remapping the controller
         /// </summary>
@@ -224,8 +223,9 @@ namespace DSRemapper.Core
         /// Main remap function of a Remapper class. This funciton is called every time the program needs to update the emulated controllers.
         /// </summary>
         /// <param name="report">Standard DSRemapper input report with the state of physical controller</param>
+        /// <param name="deltaTime">The elapsed time between executions of the <see cref="Remap"/> function</param> 
         /// <returns>Standard DSRemapper output report with the feedback state for the physical controller</returns>
-        public IDSROutputReport Remap(IDSRInputReport report);
+        public IDSROutputReport Remap(IDSRInputReport report, double deltaTime);
     }
     #endregion Plugins Interfaces
 }
