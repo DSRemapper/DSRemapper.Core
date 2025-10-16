@@ -111,7 +111,7 @@ namespace DSRemapper.Core
         /// <summary>
         /// Makes some plugins able to clear any unmanaged data from the memory or other finalizing options.
         /// </summary>
-        public static virtual void PluginExit() { }
+        public static virtual void PluginFree() { }
     }
     
     /// <summary>
@@ -207,6 +207,10 @@ namespace DSRemapper.Core
                 args == null ? Type.EmptyTypes : args.Select(a => a.GetType()).ToArray());
             method?.Invoke(this, args);
         }
+        /// <summary>
+        /// Makes some plugins able to clear any unmanaged data from the memory or other finalizing options.
+        /// </summary>
+        public static virtual void PluginFree() { }
     }
     
     /// <summary>
@@ -230,6 +234,10 @@ namespace DSRemapper.Core
         /// <param name="deltaTime">The elapsed time between executions of the <see cref="Remap"/> function</param> 
         /// <returns>Standard DSRemapper output report with the feedback state for the physical controller</returns>
         public IDSROutputReport Remap(IDSRInputReport report, double deltaTime);
+        /// <summary>
+        /// Makes some plugins able to clear any unmanaged data from the memory or other finalizing options.
+        /// </summary>
+        public static virtual void PluginFree() { }
     }
     #endregion Plugins Interfaces
 }
