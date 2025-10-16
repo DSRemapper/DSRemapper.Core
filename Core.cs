@@ -108,6 +108,10 @@ namespace DSRemapper.Core
         /// </summary>
         /// <returns>An array of IDSRInputDeviceInfo objects</returns>
         public IDSRInputDeviceInfo[] ScanDevices();
+        /// <summary>
+        /// Makes some plugins able to clear any unmanaged data from the memory or other finalizing options.
+        /// </summary>
+        public static virtual void PluginExit() { }
     }
     
     /// <summary>
