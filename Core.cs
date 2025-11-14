@@ -3,6 +3,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
+using System.Collections;
+using System.Linq.Expressions;
 
 namespace DSRemapper.Core
 {
@@ -170,6 +172,25 @@ namespace DSRemapper.Core
     public interface IDSROutputController : IDisposable
     {
         /// <summary>
+        /// Custom methods outside the interface that are defined by the controller
+        /// </summary>
+        /// <returns>a dictionary with the delegates of the custom methods</returns>
+        virtual public Dictionary<string, Delegate> CustomMethods { get {
+            var customMethods = GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public);
+            Dictionary<string, Delegate> delegates = new(customMethods
+                .Where(m => m.CustomAttributes.Any(a => a.AttributeType == typeof(CustomMethodAttribute)))
+                .Select(m =>
+                {
+                    CustomMethodAttribute? attr = m.GetCustomAttribute<CustomMethodAttribute>();
+                    List<Type> parameterTypes = [.. m.GetParameters().Select(p => p.ParameterType)];
+                    parameterTypes.Add(m.ReturnType);
+                    Type delegateType = Expression.GetDelegateType([.. parameterTypes]);
+                    return new KeyValuePair<string, Delegate>(attr?.InternalName ?? m.Name, m.CreateDelegate(delegateType, this));
+                }));
+            //DSRLogger.StaticLogInformation($"Custom methods found: {string.Join(", ",delegates.Keys)}");
+            return delegates;
+        } }
+        /// <summary>
         /// Gets if the emulated controller is connected and updating it's data
         /// </summary>
         public bool IsConnected { get; }
@@ -194,6 +215,31 @@ namespace DSRemapper.Core
         /// </summary>
         /// <returns>A standard DSRemapper output report</returns>
         public IDSROutputReport GetFeedbackReport();
+                
+        /*int IReadOnlyCollection<KeyValuePair<string, Delegate>>.Count => CustomMethods.Count;
+        virtual int Count => CustomMethods.Count;
+        IEnumerable<string> IReadOnlyDictionary<string, Delegate>.Keys => CustomMethods.Keys;
+        virtual IEnumerable<string> Keys => CustomMethods.Keys;
+        IEnumerable<Delegate> IReadOnlyDictionary<string, Delegate>.Values => CustomMethods.Values;
+        virtual IEnumerable<Delegate> Values => CustomMethods.Values;
+
+        bool IReadOnlyDictionary<string, Delegate>.ContainsKey(string key) => 
+            CustomMethods.ContainsKey(key);
+        virtual bool ContainsKey(string key) => 
+            CustomMethods.ContainsKey(key);
+        Delegate IReadOnlyDictionary<string, Delegate>.this[string key] { get=>CustomMethods[key]; }
+        virtual Delegate this[string key] { get=>CustomMethods[key]; }
+        bool IReadOnlyDictionary<string, Delegate>.TryGetValue(string key, out Delegate value) =>
+            CustomMethods.TryGetValue(key, out value);
+        virtual bool TryGetValue(string key, out Delegate value) =>
+            CustomMethods.TryGetValue(key, out value);
+        IEnumerator<KeyValuePair<string, Delegate>> IEnumerable<KeyValuePair<string, Delegate>>.GetEnumerator() =>
+            CustomMethods.GetEnumerator();
+        virtual IEnumerator<KeyValuePair<string, Delegate>> GetEnumerator() =>
+            CustomMethods.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() =>
+            CustomMethods.GetEnumerator();*/
+            
         /// <summary>
         /// Implementation for custom user defined functions.
         /// Created to implement needed functions not suported by the interface.
