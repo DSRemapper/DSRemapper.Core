@@ -137,7 +137,7 @@ namespace DSRemapper.Core
         /// Gets the controller info string to show relevant information of it (for example, battery level of Dualshock 4).
         /// Try to keep it on ONE or TWO lines, otherwise information container can expand more than expected.
         /// </summary>
-        virtual public string Info { get=>""; }
+        virtual public string Info { get => ""; }
         /// <summary>
         /// Gets the relative path (from the plugin dll) to the image that represent the physical controller
         /// </summary>
