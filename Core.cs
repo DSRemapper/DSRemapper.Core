@@ -1,8 +1,10 @@
 ﻿using DSRemapper.Types;
-using FireLibs.Logging;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
+using System.Collections;
+using System.Linq.Expressions;
 
 namespace DSRemapper.Core
 {
@@ -11,16 +13,15 @@ namespace DSRemapper.Core
     /// Delegate for Remappers message events
     /// </summary>
     /// <param name="sender">The object that sends the message to the device console</param>
-    /// <param name="level">The level of the current message</param>
-    /// <param name="deviceConsole">If is true, the message will be displayed on the device console</param>
     /// <param name="message">A string containing the message sent by the Remapper object</param>
-    public delegate void RemapperEventArgs(object sender, LogLevel level,bool deviceConsole, string message);
-    /// <summary>
+    /// <param name="level">The level of the current message</param>
+    public delegate void DeviceConsoleEventArgs(object sender, string message, LogLevel level);
+    /*/// <summary>
     /// Delegate for Remappers device console message events.
     /// </summary>
     /// <param name="sender">The object that sends the message to the device console</param>
     /// <param name="message">A string containing the message sent to the device console</param>
-    public delegate void ControllerConsoleEventArgs(object sender, string message);
+    public delegate void ControllerConsoleEventArgs(object sender, string message);*/
 
     /// <summary>
     /// Attribute to bind Remappers to their corresponding file extensions
@@ -109,6 +110,10 @@ namespace DSRemapper.Core
         /// </summary>
         /// <returns>An array of IDSRInputDeviceInfo objects</returns>
         public IDSRInputDeviceInfo[] ScanDevices();
+        /// <summary>
+        /// Makes some plugins able to clear any unmanaged data from the memory or other finalizing options.
+        /// </summary>
+        public static virtual void PluginFree() { }
     }
     
     /// <summary>
@@ -132,7 +137,7 @@ namespace DSRemapper.Core
         /// Gets the controller info string to show relevant information of it (for example, battery level of Dualshock 4).
         /// Try to keep it on ONE or TWO lines, otherwise information container can expand more than expected.
         /// </summary>
-        virtual public string Info { get=>""; }
+        virtual public string Info { get => ""; }
         /// <summary>
         /// Gets the relative path (from the plugin dll) to the image that represent the physical controller
         /// </summary>
@@ -167,6 +172,25 @@ namespace DSRemapper.Core
     public interface IDSROutputController : IDisposable
     {
         /// <summary>
+        /// Custom methods outside the interface that are defined by the controller
+        /// </summary>
+        /// <returns>a dictionary with the delegates of the custom methods</returns>
+        virtual public Dictionary<string, Delegate> CustomMethods { get {
+            var customMethods = GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public);
+            Dictionary<string, Delegate> delegates = new(customMethods
+                .Where(m => m.CustomAttributes.Any(a => a.AttributeType == typeof(CustomMethodAttribute)))
+                .Select(m =>
+                {
+                    CustomMethodAttribute? attr = m.GetCustomAttribute<CustomMethodAttribute>();
+                    List<Type> parameterTypes = [.. m.GetParameters().Select(p => p.ParameterType)];
+                    parameterTypes.Add(m.ReturnType);
+                    Type delegateType = Expression.GetDelegateType([.. parameterTypes]);
+                    return new KeyValuePair<string, Delegate>(attr?.InternalName ?? m.Name, m.CreateDelegate(delegateType, this));
+                }));
+            //DSRLogger.StaticLogInformation($"Custom methods found: {string.Join(", ",delegates.Keys)}");
+            return delegates;
+        } }
+        /// <summary>
         /// Gets if the emulated controller is connected and updating it's data
         /// </summary>
         public bool IsConnected { get; }
@@ -191,6 +215,31 @@ namespace DSRemapper.Core
         /// </summary>
         /// <returns>A standard DSRemapper output report</returns>
         public IDSROutputReport GetFeedbackReport();
+                
+        /*int IReadOnlyCollection<KeyValuePair<string, Delegate>>.Count => CustomMethods.Count;
+        virtual int Count => CustomMethods.Count;
+        IEnumerable<string> IReadOnlyDictionary<string, Delegate>.Keys => CustomMethods.Keys;
+        virtual IEnumerable<string> Keys => CustomMethods.Keys;
+        IEnumerable<Delegate> IReadOnlyDictionary<string, Delegate>.Values => CustomMethods.Values;
+        virtual IEnumerable<Delegate> Values => CustomMethods.Values;
+
+        bool IReadOnlyDictionary<string, Delegate>.ContainsKey(string key) => 
+            CustomMethods.ContainsKey(key);
+        virtual bool ContainsKey(string key) => 
+            CustomMethods.ContainsKey(key);
+        Delegate IReadOnlyDictionary<string, Delegate>.this[string key] { get=>CustomMethods[key]; }
+        virtual Delegate this[string key] { get=>CustomMethods[key]; }
+        bool IReadOnlyDictionary<string, Delegate>.TryGetValue(string key, out Delegate value) =>
+            CustomMethods.TryGetValue(key, out value);
+        virtual bool TryGetValue(string key, out Delegate value) =>
+            CustomMethods.TryGetValue(key, out value);
+        IEnumerator<KeyValuePair<string, Delegate>> IEnumerable<KeyValuePair<string, Delegate>>.GetEnumerator() =>
+            CustomMethods.GetEnumerator();
+        virtual IEnumerator<KeyValuePair<string, Delegate>> GetEnumerator() =>
+            CustomMethods.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() =>
+            CustomMethods.GetEnumerator();*/
+            
         /// <summary>
         /// Implementation for custom user defined functions.
         /// Created to implement needed functions not suported by the interface.
@@ -204,6 +253,10 @@ namespace DSRemapper.Core
                 args == null ? Type.EmptyTypes : args.Select(a => a.GetType()).ToArray());
             method?.Invoke(this, args);
         }
+        /// <summary>
+        /// Makes some plugins able to clear any unmanaged data from the memory or other finalizing options.
+        /// </summary>
+        public static virtual void PluginFree() { }
     }
     
     /// <summary>
@@ -212,20 +265,25 @@ namespace DSRemapper.Core
     public interface IDSRemapper : IDisposable
     {
         /// <summary>
-        /// Occurs when the remapper raise a message.
+        /// Occurs when the remapper raise a message to the device console.
         /// </summary>
-        public event RemapperEventArgs? OnLog;
+        public event DeviceConsoleEventArgs? OnDeviceConsole;
         /// <summary>
         /// Sets the script for the remapper setting it up to start remapping the controller
         /// </summary>
         /// <param name="file">File path to the Remap Profile file</param>
-        public void SetScript(string file);
+        public void SetScript(string file, Dictionary<string, Delegate> customMethods);
         /// <summary>
         /// Main remap function of a Remapper class. This funciton is called every time the program needs to update the emulated controllers.
         /// </summary>
         /// <param name="report">Standard DSRemapper input report with the state of physical controller</param>
+        /// <param name="deltaTime">The elapsed time between executions of the <see cref="Remap"/> function</param> 
         /// <returns>Standard DSRemapper output report with the feedback state for the physical controller</returns>
-        public IDSROutputReport Remap(IDSRInputReport report);
+        public IDSROutputReport Remap(IDSRInputReport report, double deltaTime);
+        /// <summary>
+        /// Makes some plugins able to clear any unmanaged data from the memory or other finalizing options.
+        /// </summary>
+        public static virtual void PluginFree() { }
     }
     #endregion Plugins Interfaces
 }

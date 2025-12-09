@@ -1,7 +1,8 @@
-﻿using FireLibs.Logging;
-using FireLibs.Logging.Loggers;
+﻿using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Web;
+using DSRemapper.Core.Loggers;
+using System;
 
 namespace DSRemapper
 {
@@ -10,39 +11,42 @@ namespace DSRemapper
     /// </summary>
     public class DSRLogger
     {
-        private static readonly LogLevel[] DefaultLogLevels = [LogLevel.Information, LogLevel.Warning, LogLevel.Error, LogLevel.Critical];
-        private static FileLoggerConfiguration fileConfig = new(DefaultLogLevels);
-        private static EventLoggerConfiguration eventConfig = new([.. DefaultLogLevels, LogLevel.Debug], [Logger_OnLog]);
+        private static FileLoggerConfiguration fileConfig = new();
+        private static ILoggerFactory logFac = LoggerFactory.Create((builder) =>
+            builder.AddProvider(new FileLoggerProvider(fileConfig))
+            .AddProvider(new EventLoggerProvider([Logger_OnLog])));
 
-        private static readonly Logger logger = LoggerFactory.GetOrCreateLogger("DSRMainLogger",
-            (builder) => builder.AddFileLogger(fileConfig).AddEventLogger(eventConfig));
+        private static ILogger logger = logFac.CreateLogger("Default Logger");
 
         /// <summary>
         /// This event is called every time that a log occurs.
         /// </summary>
-        public static event EventLoggerDelegate? OnLog = null;
+        public static event LogEventHandler? OnLog = null;
         /// <summary>
         /// All log entries occured from the program start
         /// </summary>
-        public static List<LogEntry> Entries { get; private set; } = [];
-        private static void Logger_OnLog(LogEntry log)
+        public static List<(LogLevel logLevel, EventId eventId, string category, string message)> Entries { get; private set; } = [];
+
+        private static void Logger_OnLog(LogLevel logLevel, EventId eventId, string category, string message)
         {
-            Entries.Add(log);
-            OnLog?.Invoke(log);
+            Entries.Add((logLevel, eventId, category, message));
+            OnLog?.Invoke(logLevel, eventId, category, message);
         }
 
-        /// <inheritdoc cref="Logger.Log(LogLevel,string)"/>
-        public static void StaticLog(LogLevel level, string message) => logger.Log(level,message);
-        /// <inheritdoc cref="Logger.LogDebug(string)"/>
-        public static void StaticLogDebug(string message) => logger.LogDebug(message);
-        /// <inheritdoc cref="Logger.LogInformation(string)"/>
-        public static void StaticLogInformation(string message) => logger.LogInformation(message);
-        /// <inheritdoc cref="Logger.LogWarning(string)"/>
-        public static void StaticLogWarning(string message) => logger.LogWarning(message);
-        /// <inheritdoc cref="Logger.LogError(string)"/>
-        public static void StaticLogError(string message) => logger.LogError(message);
-        /// <inheritdoc cref="Logger.LogCritical(string)"/>
-        public static void StaticLogCritical(string message) => logger.LogCritical(message);
+        /// <inheritdoc cref="LoggerExtensions.Log(ILogger, LogLevel, string?, object?[])"/>
+        public static void StaticLog(LogLevel level, string message, params object?[] args) => logger.Log(level, message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogTrace(ILogger, string?, object?[])"/>
+        public static void StaticLogTrace(string message, params object?[] args) => logger.LogTrace(message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogDebug(ILogger, string?, object?[])"/>
+        public static void StaticLogDebug(string message, params object?[] args) => logger.LogDebug(message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogInformation(ILogger, string?, object?[])"/>
+        public static void StaticLogInformation(string message, params object?[] args) => logger.LogInformation(message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogWarning(ILogger, string?, object?[])"/>
+        public static void StaticLogWarning(string message, params object?[] args) => logger.LogWarning(message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogError(ILogger, string?, object?[])"/>
+        public static void StaticLogError(string message, params object?[] args) => logger.LogError(message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogCritical(ILogger, string?, object?[])"/>
+        public static void StaticLogCritical(string message, params object?[] args) => logger.LogCritical(message, args);
 
         /// <summary>
         /// Initialize a DSRLogger with a name to identify log entries on the log file.
@@ -51,21 +55,36 @@ namespace DSRemapper
         /// <param name="subLoggerId">The DSRLogger name associated with the instance</param>
         /// <returns>A instance of DSRLogger</returns>
         public static DSRLogger GetLogger(string subLoggerId) => new(subLoggerId);
+        /// <summary>
+        /// Initialize a DSRLogger with a name to identify log entries on the log file.
+        /// Alternative you can use static log functions, which not have any name added.
+        /// </summary>
+        /// <typeparam name="T">The type which name will be used for the logger</typeparam>
+        /// <returns>A instance of DSRLogger</returns>
+        public static DSRLogger GetLogger<T>() => new(typeof(T).FullName ?? "");
 
-        private readonly string subLoggerId = "Default";
-        private DSRLogger(string subLoggerId) => this.subLoggerId = subLoggerId;
-        /// <inheritdoc cref="Logger.Log(LogLevel,string)"/>
-        public void Log(LogLevel level, string message) => StaticLog(level, $"<{subLoggerId}> {message}");
-        /// <inheritdoc cref="Logger.LogDebug(string)"/>
-        public void LogDebug(string message) => Log(LogLevel.Debug,message);
-        /// <inheritdoc cref="Logger.LogInformation(string)"/>
-        public void LogInformation(string message) => Log(LogLevel.Information, message);
-        /// <inheritdoc cref="Logger.LogWarning(string)"/>
-        public void LogWarning(string message) => Log(LogLevel.Warning, message);
-        /// <inheritdoc cref="Logger.LogError(string)"/>
-        public void LogError(string message) => Log(LogLevel.Error, message);
-        /// <inheritdoc cref="Logger.LogCritical(string)"/>
-        public void LogCritical(string message) => Log(LogLevel.Critical, message);
+        /// <summary>
+        /// The <see cref="ILogger"/> intance used by the <see cref="DSRLogger"/> class.
+        /// </summary>
+        /// <returns><see cref="ILogger"/> instance</returns>
+        public ILogger Logger { get; private set; }
+        private DSRLogger(string subLoggerId) : this(logFac.CreateLogger(subLoggerId)) { }
+        private DSRLogger(ILogger logger) => Logger = logger;
+
+        /// <inheritdoc cref="LoggerExtensions.Log(ILogger, LogLevel, string?, object?[])"/>
+        public void Log(LogLevel level, string message, params object?[] args) => Logger.Log(level,message,args);
+        /// <inheritdoc cref="LoggerExtensions.LogTrace(ILogger, string?, object?[])"/>
+        public void LogTrace(string message, params object?[] args) => Logger.LogTrace(message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogDebug(ILogger, string?, object?[])"/>
+        public void LogDebug(string message, params object?[] args) => Logger.LogDebug(message,args);
+        /// <inheritdoc cref="LoggerExtensions.LogInformation(ILogger, string?, object?[])"/>
+        public void LogInformation(string message, params object?[] args) => Logger.LogInformation(message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogWarning(ILogger, string?, object?[])"/>
+        public void LogWarning(string message, params object?[] args) => Logger.LogWarning(message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogError(ILogger, string?, object?[])"/>
+        public void LogError(string message, params object?[] args) => Logger.LogError(message, args);
+        /// <inheritdoc cref="LoggerExtensions.LogCritical(ILogger, string?, object?[])"/>
+        public void LogCritical(string message, params object?[] args) => Logger.LogCritical(message, args);
 
     }
 
@@ -75,13 +94,20 @@ namespace DSRemapper
     public static class LogEntryExtensions
     {
         /// <summary>
+        /// Generates a string with the log information
+        /// </summary>
+        /// <returns>A string</returns>
+        public static string ToStringExtended(this (LogLevel logLevel, EventId eventId, string category, string message) log)
+        {
+            return $"{log.logLevel}: [{log.category} ({log.eventId})] {log.message}";
+        }
+        /// <summary>
         /// Generates a string with XML/HTML format
         /// </summary>
         /// <returns>A XML/HTML formatted string</returns>
-        public static string ToHTMLTag(this LogEntry log)
+        public static string ToHTMLTag(this (LogLevel logLevel, EventId eventId, string category, string message) log)
         {
-            
-            return $"<{log.LogLevel}>{HttpUtility.HtmlEncode(log)}</{log.LogLevel}>";
+            return $"<{log.logLevel}>{HttpUtility.HtmlEncode(log.ToStringExtended())}</{log.logLevel}>";
         }
     }
 }
