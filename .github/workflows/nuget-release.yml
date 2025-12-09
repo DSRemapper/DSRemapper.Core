@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
-      secrets: inherit
+      contents: write
+      #secrets: inherit
 
     steps:
       - uses: actions/checkout@v4
