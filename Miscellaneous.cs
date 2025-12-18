@@ -151,7 +151,7 @@ namespace DSRemapper.Core.CDN
         /// <summary>
         /// Initializes a new instance of the <see cref="ManifestCollection"/> class.
         /// </summary>
-        private ManifestCollection() { }
+        public ManifestCollection() { }
         /// <summary>
         /// Deserializes a JSON string into a <see cref="ManifestCollection"/> instance.
         /// </summary>
