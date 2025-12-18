@@ -272,6 +272,7 @@ namespace DSRemapper.Core
         /// Sets the script for the remapper setting it up to start remapping the controller
         /// </summary>
         /// <param name="file">File path to the Remap Profile file</param>
+        /// <param name="customMethods">A dictionary of custom methods from the controller that can be used by the script.</param>
         public void SetScript(string file, Dictionary<string, Delegate> customMethods);
         /// <summary>
         /// Main remap function of a Remapper class. This funciton is called every time the program needs to update the emulated controllers.

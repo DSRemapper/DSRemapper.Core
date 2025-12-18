@@ -177,9 +177,7 @@ namespace DSRemapper.SixAxis
             Grav = Vector3.Normalize((1 - accelCorrection) * Grav + accelCorrection * unitAccel);
 
             rotation *= deltaRotation;
-            //Console.WriteLine(accel);
-            //Console.WriteLine(accel + Grav);
-            Accel = (accel - Grav);//rotation * 
+            Accel = accel - Grav;
         }
 
         DSRVector3 lastGyroRead = new();
@@ -193,8 +191,9 @@ namespace DSRemapper.SixAxis
         /// <param name="accel">Accelerometer raw input value</param>
         /// <param name="gyro">Gyroscope raw input value</param>
         /// <param name="maxCount">Indicates how much reads will be considerated for the error</param>
-        // <param name="autoThesshold">If true the class will auto recalculate the thresshold to an optimal one</param>
-        public void ProcessRawIMU(DSRVector3 accel, DSRVector3 gyro, int maxCount = 200, float gyroMag=1f, float accelMag = 0.1f)//, bool autoThesshold = false
+        /// <param name="accelMag">The magnitude threshold for accelerometer readings to be considered for error correction.</param>
+        /// <param name="gyroMag">The magnitude threshold for gyroscope readings to be considered for error correction.</param>
+        public void ProcessRawIMU(DSRVector3 accel, DSRVector3 gyro, int maxCount = 200, float accelMag = 0.1f, float gyroMag=1f)
         {
             DSRVector3 temp = gyro - lastGyroRead;
             if (temp.Length < gyroMag)
@@ -210,13 +209,11 @@ namespace DSRemapper.SixAxis
 
             Update(fixedAccel, fixedGyro);
 
-            //DSRVector3 AccelError = Accel + accelError.Average;
             temp = Accel - lastAccelRead;
 
 
             if (temp.Length < accelMag)
             {
-                //Console.WriteLine($"{temp.Length} | {Accel}");
                 accelError.Update(Accel, 200);
             }
             
