@@ -1,6 +1,7 @@
 using System.Dynamic;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DSRemapper.Core.CDN
 {
@@ -50,7 +51,11 @@ namespace DSRemapper.Core.CDN
         /// Gets a dictionary with the download links using the OS as a key
         /// </summary>        
         public Dictionary<OSPlatform, string> DownloadLinks { get; private set;} = [];
-        
+        /// <summary>
+        /// Sets the download links for the component.
+        /// </summary>
+        /// <param name="links">A dictionary containing the download links for different OS platforms.</param>
+        public void SetDownloadLinks(Dictionary<OSPlatform, string> links) => DownloadLinks = links;
         /// <summary>
         /// Clears all OS-specific download links.
         /// </summary>
@@ -86,10 +91,12 @@ namespace DSRemapper.Core.CDN
         /// Gets the current OS platform based on runtime information.
         /// </summary>
         /// <returns>The <see cref="OSPlatform"/> corresponding to the current operating system, or <see cref="AllPlatforms"/> if no specific platform link is found.</returns>
+        [JsonIgnore]
         public readonly OSPlatform CurrentPlatform => DownloadLinks.Keys.FirstOrDefault(RuntimeInformation.IsOSPlatform, AllPlatforms);
         /// <summary>
         /// Gets the download link for the current OS.
         /// </summary>
+        [JsonIgnore]
         public readonly string CurrentOSDownloadLink => GetOSDownloadLink(CurrentPlatform);
 
         /// <summary>
@@ -134,7 +141,7 @@ namespace DSRemapper.Core.CDN
         /// Saves the current manifest to a specified file as a JSON string.
         /// </summary>
         /// <param name="file">The path to the file where the manifest will be saved.</param>
-        public void SaveManifestToFile(string file) => File.WriteAllText(file, SerializeToJson());
+        public readonly void SaveManifestToFile(string file) => File.WriteAllText(file, SerializeToJson());
         /// <inheritdoc/>
         public static bool operator ==(Manifest left, Manifest right) => left.Equals(right);
         /// <inheritdoc/>
