@@ -15,9 +15,9 @@
 	  <PackageReadmeFile>Readme.md</PackageReadmeFile>
 	  <PackageProjectUrl>https://github.com/Oscar-Wohlfarhrt/DSRemapper</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/Oscar-Wohlfarhrt/DSRemapper</RepositoryUrl>
-	  <AssemblyVersion>0.4.8</AssemblyVersion>
+	  <AssemblyVersion>0.4.9</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
-	  <Version>$(AssemblyVersion)</Version>
+	  <Version>$(AssemblyVersion)-dev8</Version>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
 	  <Configurations>Debug;Release</Configurations>
 	  <Platforms>AnyCPU;x64</Platforms>
