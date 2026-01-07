@@ -74,6 +74,7 @@ namespace DSRemapper.Core
 
 
     #region Plugins Interfaces
+    #region Input Plugins
     /// <summary>
     /// A standard interface for device informations handled by DSRemapper
     /// </summary>
@@ -165,7 +166,9 @@ namespace DSRemapper.Core
         /// <param name="report">A standard DSRemapper output report with the information for the controller</param>
         public void SendOutputReport(IDSROutputReport report);
     }
+    #endregion Input Plugins
     
+    #region Output Plguins
     /// <summary>
     /// Standard interface for DSRemapper emulated controllers
     /// </summary>
@@ -258,7 +261,39 @@ namespace DSRemapper.Core
         /// </summary>
         public static virtual void PluginFree() { }
     }
+    #endregion Output Plugins
     
+    #region Remapper Plugins
+    /// <summary>
+    /// Standard interface to manage emulated controllers from the remapper plugins.
+    /// This interface is ONLY intended to be used by the plugin and not implemented.
+    /// </summary>
+    public interface IDSROutput : IDisposable{
+        /// <summary>
+        /// Creates a standalone emulated controller for the remapper.
+        /// </summary>
+        /// <param name="path">Path/id of the emulated controller type (for example: "ViGEm/DS4" for a ViGEm plugin Dualshock 4 controller)</param>
+        /// <returns>An interface of the emulated controller</returns>
+        /// <exception cref="Exception">The controller path/id doesn't exist or can't be found</exception>
+        public IDSROutputController CreateController(string path);
+        /// <summary>
+        /// Creates a global emulated controller, which can be shared with multiple remap profiles for complex setups.
+        /// If a emulated controller of the type and id is currently defined, the function returns the controller binded to the id.
+        /// Be careful setting the same fields of the controller state from multiple remap profiles, can lead to errors.
+        /// </summary>
+        /// <param name="id">The id of the binded controller</param>
+        /// <param name="path">Path/id of the emulated controller type (for example: "ViGEm/DS4" for a ViGEm plugin Dualshock 4 controller)</param>
+        /// <returns>An interface of the emulated controller</returns>
+        public IDSROutputController GetController(string id,string path);
+        /// <summary>
+        /// Disconnects ALL emulated controllers (standalone and shared ones)
+        /// </summary>
+        public void DisconnectAll();
+        /// <summary>
+        /// Disconnects THIS <see cref="IDSROutput"/> object from all shared controllers
+        /// </summary>
+        public void DisconnectAllBinded();
+    }
     /// <summary>
     /// Standard interface for DSRemapper remappers
     /// </summary>
@@ -273,7 +308,7 @@ namespace DSRemapper.Core
         /// </summary>
         /// <param name="file">File path to the Remap Profile file</param>
         /// <param name="customMethods">A dictionary of custom methods from the controller that can be used by the script.</param>
-        public void SetScript(string file, Dictionary<string, Delegate> customMethods);
+        public void SetScript(FileInfo file, Dictionary<string, Delegate> customMethods);
         /// <summary>
         /// Main remap function of a Remapper class. This funciton is called every time the program needs to update the emulated controllers.
         /// </summary>
@@ -286,5 +321,6 @@ namespace DSRemapper.Core
         /// </summary>
         public static virtual void PluginFree() { }
     }
+    #endregion Remapper Plugins
     #endregion Plugins Interfaces
 }
